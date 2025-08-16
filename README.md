@@ -71,7 +71,7 @@ selenium
 Run the Streamlit app with:
 
 ```bash
-streamlit run main.py
+python -m streamlit run app.py
 ```
 
 Then open the link in your browser (default: http://localhost:8501).

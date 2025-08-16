@@ -3,7 +3,7 @@ import pandas as pd
 import altair as alt
 import matplotlib.pyplot as plt
 from policyRatesScraper import scrape_policy_rates
-
+import os
 # Set Streamlit page configuration
 st.set_page_config(
     page_title="CBSL Data Dashboard",
@@ -104,3 +104,6 @@ elif selected_page == "Exchange Rates":
     This section will display exchange rates data.
     Currently, the functionality is under development.
     """)
+    
+    df = pd.read_csv(os.path.join("data", "exchange_rates.csv"))
+    st.dataframe(df)

@@ -15,7 +15,7 @@ st.set_page_config(
 st.title("Central Bank of Sri Lanka Data Dashboard")
 
 st.sidebar.title("Navigation")
-selected_page = st.sidebar.radio("Select Page", ["Home", "Policy Rates"])
+selected_page = st.sidebar.radio("Select Page", ["Home", "Policy Rates","Exchange Rates"])
 
 # --- Home Page ---
 if selected_page == "Home":
@@ -96,3 +96,11 @@ elif selected_page == "Policy Rates":
 
         except Exception as e:
             st.error(f"Failed to load historical data: {e}")
+
+elif selected_page == "Exchange Rates":
+    st.header("Exchange Rates")
+
+    st.write("""
+    This section will display exchange rates data.
+    Currently, the functionality is under development.
+    """)

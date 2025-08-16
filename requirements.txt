@@ -7,3 +7,5 @@ numpy
 selenium
 matplotlib
 openpyxl
+webdriver_manager
+lxml

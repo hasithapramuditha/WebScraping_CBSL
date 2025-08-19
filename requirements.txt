@@ -9,3 +9,4 @@ matplotlib
 openpyxl
 webdriver_manager
 lxml
+plotly

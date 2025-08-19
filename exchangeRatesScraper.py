@@ -149,6 +149,7 @@ def run_once(driver, from_date, to_date) -> bool:
         #Clicking on the "Exchange Rates" checkbox
         require(checkBoxClick(driver, "ContentPlaceHolder1_grdSubjects_ExternalSector_chkIsSelect_4"),
                 "Exchange Rates checkbox")
+        print("Initial checkbox clicked")
 
         #Selecting the criteria to be daily
         require(select_criteria_daily(driver, "ContentPlaceHolder1_drpFrequency"),
@@ -157,7 +158,8 @@ def run_once(driver, from_date, to_date) -> bool:
         #setting the from and to dates
         require(set_date(driver, "ContentPlaceHolder1_txtDateFrom", from_date), "From date")
         require(set_date(driver, "ContentPlaceHolder1_txtDateTo", to_date), "To date")
-
+        print("Date range entered")
+        
         # Clicking the "Next" button to proceed
         require(click_button(driver, "ContentPlaceHolder1_btnNext2"), "Next2")
 
@@ -166,7 +168,7 @@ def run_once(driver, from_date, to_date) -> bool:
 
         #Iterating through all the checkboxes to select them
         #Wait time is increased to 200 since loading multiple records can take time for the server to process resulting in delays and making sure a timeout does not happen.
-        wait = WebDriverWait(driver, 200)
+        wait = WebDriverWait(driver, 5000)
         wait.until(EC.presence_of_element_located(
             (By.CSS_SELECTOR, "input[type='checkbox'][id$='chkSelect']"))
         )
@@ -174,6 +176,7 @@ def run_once(driver, from_date, to_date) -> bool:
             driver.execute_script("arguments[0].scrollIntoView({block:'center'});", cb)
             if cb.is_enabled() and cb.is_displayed() and not cb.is_selected():
                 cb.click()
+        print("Required Data selected")
 
         #proceeding to the next step
         require(click_button(driver, "ContentPlaceHolder1_btnNext"), "Next (selection)")
@@ -186,7 +189,7 @@ def run_once(driver, from_date, to_date) -> bool:
         require(click_button(driver, "ContentPlaceHolder1_btnNext"), "Next (post-confirm)")
         
         
-
+        wait = WebDriverWait(driver, 5000)
         # Download Button
         btn = wait.until(EC.presence_of_element_located((By.ID, "ContentPlaceHolder1_imgDownload")))
         driver.execute_script("arguments[0].scrollIntoView({block:'center'});", btn)
@@ -196,9 +199,11 @@ def run_once(driver, from_date, to_date) -> bool:
             btn.click()
         except ElementClickInterceptedException:
             driver.execute_script("arguments[0].click();", btn)
+        print("Download started")
         
         #Giving some time for the download to complete otherwise its going to be an incomplete download    
-        time.sleep(10)
+        time.sleep(15)
+        
 
         return True
     except Exception as e:
@@ -208,11 +213,12 @@ def run_once(driver, from_date, to_date) -> bool:
 def main():
     ensure_clean_folder(DOWNLOAD_DIR)
     to_date = datetime.now().strftime("%Y-%m-%d")
-    from_date = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
+    from_date = (datetime.now() - timedelta(days=180)).strftime("%Y-%m-%d")
     os.makedirs("Data", exist_ok=True)
 
     opts = Options()
     opts.add_argument("--window-size=1280,900")
+    opts.add_argument("--headless=new")
     opts.add_experimental_option("prefs", {
         "download.default_directory": os.path.join(os.getcwd(), "Data"),
         "download.prompt_for_download": False,

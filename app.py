@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from policyRatesScraper import scrape_policy_rates
 import os
 import plotly.express as px
-from exchangeRatesScraper import latest_currency_rates, historical_currency_rates
+from exchangeRatesScraper import latest_currency_rates
 
 # Set Streamlit page configuration
 st.set_page_config(

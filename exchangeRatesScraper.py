@@ -20,6 +20,20 @@ URL = "https://www.cbsl.lk/eResearch/"
 
 DOWNLOAD_DIR = Path(os.getcwd()) / "Data"
 
+def latest_currency_rates(df,currency):
+    """Returns the latest currency rates from the DataFrame."""
+    data = df.sort_index(ascending=False)
+    latest = data.iloc[0]
+    
+    date = latest.name
+    buying = latest[f"TT Rates -Buying {currency}"]
+    selling = latest[f"TT Rates -Selling {currency}"]
+    return {
+        "date": date.strftime("%Y-%m-%d"),
+        "buying": buying,
+        "selling": selling
+    }
+
 def ensure_clean_folder(folder: Path):
     folder.mkdir(parents=True, exist_ok=True)  # ensure it exists
     for item in folder.iterdir():

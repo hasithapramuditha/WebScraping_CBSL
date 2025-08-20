@@ -61,10 +61,10 @@ elif selected_page == "Exchange Rates":
 
     with tab1:
         if curr:
-            fig = px.line(plot_data, x="Date", y=f"TT Rates -Buying {curr}", title=f"{curr} Buying Rate Over Time")
+            fig = px.line(plot_data, x="Date", y=f"TT Rates -Buying {curr}", title=f"{curr} Over Time")
             st.plotly_chart(fig, use_container_width=True)
             
     with tab2:
         if curr:
-            fig = px.line(plot_data, x="Date", y=f"TT Rates -Selling {curr}", title=f"{curr} Selling Rate Over Time")
+            fig = px.line(plot_data, x="Date", y=f"TT Rates -Selling {curr}", title=f"{curr} Over Time")
             st.plotly_chart(fig, use_container_width=True)

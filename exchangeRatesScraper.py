@@ -147,8 +147,8 @@ def run_once(driver, from_date, to_date) -> bool:
         )
         
         #Clicking on the "Exchange Rates" checkbox
-        require(checkBoxClick(driver, "ContentPlaceHolder1_grdSubjects_ExternalSector_chkIsSelect_4"),
-                "Exchange Rates checkbox")
+        require(checkBoxClick(driver, "ContentPlaceHolder1_grdSubjects_MonitorySector_chkIsSelect_1"),
+                "Open Market Operations checkbox")
         print("Initial checkbox clicked")
 
         #Selecting the criteria to be daily
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     # retry loop
     while True:
         if main():
-            print("Exchange rates downloaded successfully.")
+            print("Interest rates downloaded successfully.")
             break
         print("Failed; retrying in 60s…")
         time.sleep(60)

@@ -70,7 +70,6 @@ def clean_data():
             
             df.index.name = "Date"
 
-            
             #Saving the cleaned data to a new file
             df.to_csv(os.path.join(os.getcwd(), "Data", "exchange_rates.csv"))
 
@@ -184,6 +183,7 @@ def run_once(driver, from_date, to_date) -> bool:
         yes_button = wait.until(EC.element_to_be_clickable(
             (By.XPATH, "/html/body/div[1]/div[3]/div/button[1]")))
         yes_button.click()
+        time.sleep(2)
 
         #Clicking the "Next" button to confirm the selection
         require(click_button(driver, "ContentPlaceHolder1_btnNext"), "Next (post-confirm)")
@@ -213,7 +213,7 @@ def run_once(driver, from_date, to_date) -> bool:
 def main():
     ensure_clean_folder(DOWNLOAD_DIR)
     to_date = datetime.now().strftime("%Y-%m-%d")
-    from_date = (datetime.now() - timedelta(days=180)).strftime("%Y-%m-%d")
+    from_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d") #higher the load the more time the website takes to load
     os.makedirs("Data", exist_ok=True)
 
     opts = Options()

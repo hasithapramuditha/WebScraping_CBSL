@@ -1,29 +1,23 @@
-# Streamlit page that scrapes the CBSL inflation "window" using Selenium-visible text
-# (no HTML tables), parses 2023–2025 Headline/Core YoY for CCPI & NCPI,
-# caches to Data/cbsl_inflation_2023_2025.csv and shows charts + PDF links.
-
 import requests
 import re
 from datetime import datetime
 from pathlib import Path
+import time
 
 import pandas as pd
 import streamlit as st
 import plotly.express as px
 from bs4 import BeautifulSoup as BS
 
-# --- OPTIONAL: Selenium for robust text capture (with requests fallback) ---
 
-
-def _try_import_selenium():
-    try:
-        from selenium import webdriver
-        from selenium.webdriver.chrome.options import Options
-        from selenium.webdriver.support.ui import WebDriverWait
-        return webdriver, Options, WebDriverWait
-    except Exception:
-        return None, None, None
-
+# def _try_import_selenium():
+#     try:
+#         from selenium import webdriver
+#         from selenium.webdriver.chrome.options import Options
+#         from selenium.webdriver.support.ui import WebDriverWait
+#         return webdriver, Options, WebDriverWait
+#     except Exception:
+#         return None, None, None
 
 TABLE_URL = "https://www.cbsl.gov.lk/cbsl_custom/inflation/inflationwindow.php"
 PRESS_URL = "https://www.cbsl.gov.lk/en/measures-of-consumer-price-inflation"
@@ -33,11 +27,13 @@ UA = {
 MONTHS = ["January", "February", "March", "April", "May", "June",
           "July", "August", "September", "October", "November", "December"]
 MONTH_INDEX = {m: i for i, m in enumerate(MONTHS, start=1)}
+
+
+# Paths for storing cached CSV data
 DATA_DIR = Path("Data")
 DATA_DIR.mkdir(exist_ok=True)
-CSV_OUT = DATA_DIR / "cbsl_inflation_2023_2025.csv"
-CSV_PDF = DATA_DIR / "cbsl_inflation_press_links.csv"
-
+CSV_OUT = DATA_DIR / "cbsl_inflation_2023_2025.csv"   # inflation data
+CSV_PDF = DATA_DIR / "cbsl_inflation_press_links.csv" # press release links
 
 def norm_minus(s: str) -> str:
     # normalize different minus/space characters
@@ -54,35 +50,62 @@ def to_float(s: str | None):
     return float(m.group()) if m else None
 
 
-def scrape_text_block() -> str:
-    """Prefer Selenium to get the full rendered text; fallback to requests+BS."""
-    webdriver, Options, WebDriverWait = _try_import_selenium()
-    if webdriver is not None:
-        try:
-            opts = Options()
-            opts.add_argument("--headless=new")
-            opts.add_argument("--window-size=1280,900")
-            opts.add_argument("--no-sandbox")
-            opts.add_argument("--disable-dev-shm-usage")
-            driver = webdriver.Chrome(options=opts)
-            try:
-                driver.get(TABLE_URL)
-                WebDriverWait(driver, 20).until(lambda d: d.execute_script(
-                    "return document.readyState") == "complete")
-                html = driver.page_source
-                soup = BS(html, "html.parser")
-                return soup.get_text("\n", strip=True)
-            finally:
-                driver.quit()
-        except Exception:
-            pass  # fall back to requests below
 
-    # Fallback: requests + BS
-    r = requests.get(TABLE_URL, headers=UA, timeout=30)
+def scrape_text_block() -> str:
+    """Fetch full visible text of the inflation window without Selenium."""
+    for attempt in range(3):
+        r = requests.get(TABLE_URL, headers=UA, timeout=30)
+        if r.status_code == 200 and r.text.strip():
+            break
+        time.sleep(1)
     r.raise_for_status()
+
+    # Parse with lxml (fast) and extract visible text
     soup = BS(r.text, "lxml")
+
+    candidates = [
+        soup.select_one("main"),
+        soup.select_one("article"),
+        soup.select_one("div#content"),
+        soup.select_one("div.inflationwindow"),
+        soup.select_one("pre"),
+    ]
+    for node in candidates:
+        if node and node.get_text(strip=True):
+            return node.get_text("\n", strip=True)
+
+    # Fallback: whole page text
     return soup.get_text("\n", strip=True)
 
+
+# def scrape_text_block() -> str:
+#     """Prefer Selenium to get the full rendered text; fallback to requests+BS."""
+#     webdriver, Options, WebDriverWait = _try_import_selenium()
+#     if webdriver is not None:
+#         try:
+#             opts = Options()
+#             opts.add_argument("--headless=new")
+#             opts.add_argument("--window-size=1280,900")
+#             opts.add_argument("--no-sandbox")
+#             opts.add_argument("--disable-dev-shm-usage")
+#             driver = webdriver.Chrome(options=opts)
+#             try:
+#                 driver.get(TABLE_URL)
+#                 WebDriverWait(driver, 20).until(lambda d: d.execute_script(
+#                     "return document.readyState") == "complete")
+#                 html = driver.page_source
+#                 soup = BS(html, "html.parser")
+#                 return soup.get_text("\n", strip=True)
+#             finally:
+#                 driver.quit()
+#         except Exception:
+#             pass  # fall back to requests below
+
+#     # Fallback: requests + BS
+#     r = requests.get(TABLE_URL, headers=UA, timeout=30)
+#     r.raise_for_status()
+#     soup = BS(r.text, "lxml")
+#     return soup.get_text("\n", strip=True)
 
 def parse_inflationwindow_text(txt: str) -> pd.DataFrame:
     """
@@ -94,7 +117,6 @@ def parse_inflationwindow_text(txt: str) -> pd.DataFrame:
     """
     txt = norm_minus(txt)
 
-    # extract per-year blocks in reverse order so 2025 takes precedence
     blocks = {}
     for year in ["2025", "2024", "2023"]:
         m = re.search(rf"{year}\s+(.*?)(?=202\d|\Z)", txt, flags=re.S)
@@ -104,7 +126,6 @@ def parse_inflationwindow_text(txt: str) -> pd.DataFrame:
     rows = []
     for year, blob in blocks.items():
         for mon in MONTHS:
-            # robust pattern: Month then 4 fields (numbers or --), spacing optional
             mm = re.search(
                 rf"{mon}\s+([-\d\.\u2212\u2013\u2014\u2012\uFF0D]+)\s+([-\d\.]+)\s+([-\d\.]+|--)\s+([-\d\.]+|--)",
                 blob
@@ -196,16 +217,17 @@ def _load_or_scrape(force: bool = False):
 
 def render_inflation_page():
     st.header("Inflation (CCPI / NCPI) — Y-o-Y (2023–2025)")
-
-    # Controls
-    left, right = st.columns([1, 4])
-    with left:
-        if st.button("Rescrape from CBSL now"):
-            _load_or_scrape(force=True)
-            st.success("Refreshed from CBSL.")
+    
     df, links = _load_or_scrape(force=False)
 
-
+# --- Last updated info ---
+    if CSV_OUT.exists():
+        last_updated = datetime.fromtimestamp(CSV_OUT.stat().st_mtime)
+        st.caption(f"Last updated: {last_updated.strftime('%Y-%m-%d %H:%M:%S')}")
+    else:
+        st.caption("Last updated: Not available (no CSV found)")
+        
+        
     # ---------- Filters ----------
     c1, c2, c3 = st.columns(3)
     with c1:

@@ -213,7 +213,7 @@ def run_once(driver, from_date, to_date) -> bool:
 def main():
     ensure_clean_folder(DOWNLOAD_DIR)
     to_date = datetime.now().strftime("%Y-%m-%d")
-    from_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d") #higher the load the more time the website takes to load
+    from_date = (datetime.now() - timedelta(days=120)).strftime("%Y-%m-%d") #higher the load the more time the website takes to load
     os.makedirs("Data", exist_ok=True)
 
     opts = Options()

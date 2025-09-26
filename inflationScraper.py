@@ -1,3 +1,7 @@
+# We do NOT use Selenium because the CBSL page is not JS-rendered.
+# BeautifulSoup (with requests) is enough to scrape the visible HTML.
+# Selenium implmentation is also there, but commented
+
 import requests
 import re
 from datetime import datetime
@@ -9,7 +13,6 @@ import streamlit as st
 import plotly.express as px
 from bs4 import BeautifulSoup as BS
 
-
 # def _try_import_selenium():
 #     try:
 #         from selenium import webdriver
@@ -19,11 +22,15 @@ from bs4 import BeautifulSoup as BS
 #     except Exception:
 #         return None, None, None
 
+# URLs and settings
+
 TABLE_URL = "https://www.cbsl.gov.lk/cbsl_custom/inflation/inflationwindow.php"
 PRESS_URL = "https://www.cbsl.gov.lk/en/measures-of-consumer-price-inflation"
+
 UA = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36"}
 
+# Month name references
 MONTHS = ["January", "February", "March", "April", "May", "June",
           "July", "August", "September", "October", "November", "December"]
 MONTH_INDEX = {m: i for i, m in enumerate(MONTHS, start=1)}
@@ -35,24 +42,26 @@ DATA_DIR.mkdir(exist_ok=True)
 CSV_OUT = DATA_DIR / "cbsl_inflation_2023_2025.csv"   # inflation data
 CSV_PDF = DATA_DIR / "cbsl_inflation_press_links.csv" # press release links
 
+# Helpers for cleaning numbers/text
 def norm_minus(s: str) -> str:
-    # normalize different minus/space characters
+    # Normalize minus signs and spaces (web often uses weird unicode chars)
     for bad in ["−", "–", "—", "‒", "﹣", "－"]:
         s = s.replace(bad, "-")
     return s.replace("\u00a0", " ").strip()
 
 
 def to_float(s: str | None):
+    #Convert a string with digits into a float, return None if empty or invalid
     if not s:
         return None
     s = norm_minus(str(s))
     m = re.search(r"-?\d+\.?\d*", s)
     return float(m.group()) if m else None
 
-
-
+# Scraper for the inflation numbers
 def scrape_text_block() -> str:
-    """Fetch full visible text of the inflation window without Selenium."""
+#    Fetch visible text from the inflation window page without Selenium
+# Retry a few times in case of network hiccups
     for attempt in range(3):
         r = requests.get(TABLE_URL, headers=UA, timeout=30)
         if r.status_code == 200 and r.text.strip():
@@ -60,9 +69,9 @@ def scrape_text_block() -> str:
         time.sleep(1)
     r.raise_for_status()
 
-    # Parse with lxml (fast) and extract visible text
     soup = BS(r.text, "lxml")
 
+ # Try specific containers first (defensive)
     candidates = [
         soup.select_one("main"),
         soup.select_one("article"),
@@ -77,7 +86,7 @@ def scrape_text_block() -> str:
     # Fallback: whole page text
     return soup.get_text("\n", strip=True)
 
-
+# Selenium scraper
 # def scrape_text_block() -> str:
 #     """Prefer Selenium to get the full rendered text; fallback to requests+BS."""
 #     webdriver, Options, WebDriverWait = _try_import_selenium()
@@ -107,6 +116,7 @@ def scrape_text_block() -> str:
 #     soup = BS(r.text, "lxml")
 #     return soup.get_text("\n", strip=True)
 
+# Parser for inflation data
 def parse_inflationwindow_text(txt: str) -> pd.DataFrame:
     """
     Parse blocks like:
@@ -117,6 +127,7 @@ def parse_inflationwindow_text(txt: str) -> pd.DataFrame:
     """
     txt = norm_minus(txt)
 
+# Split by year sections
     blocks = {}
     for year in ["2025", "2024", "2023"]:
         m = re.search(rf"{year}\s+(.*?)(?=202\d|\Z)", txt, flags=re.S)
@@ -125,6 +136,7 @@ def parse_inflationwindow_text(txt: str) -> pd.DataFrame:
 
     rows = []
     for year, blob in blocks.items():
+        # Find month rows with 4 numeric fields
         for mon in MONTHS:
             mm = re.search(
                 rf"{mon}\s+([-\d\.\u2212\u2013\u2014\u2012\uFF0D]+)\s+([-\d\.]+)\s+([-\d\.]+|--)\s+([-\d\.]+|--)",
@@ -151,12 +163,14 @@ def parse_inflationwindow_text(txt: str) -> pd.DataFrame:
     if not rows:
         return pd.DataFrame()
 
+# Final cleaned dataframe
     df = pd.DataFrame(rows).sort_values("date")
     df = df[(df["date"] >= datetime(2023, 1, 1)) & (
         df["date"] <= datetime(2025, 12, 31))].reset_index(drop=True)
     return df
 
 
+# Scraper for press release links (PDFs)
 def fetch_press_links() -> pd.DataFrame:
     r = requests.get(PRESS_URL, headers=UA, timeout=30)
     r.raise_for_status()
@@ -177,7 +191,7 @@ def fetch_press_links() -> pd.DataFrame:
                 out.append({"year": year, "month": month, "pdf_url": href})
     return pd.DataFrame(out)
 
-
+# Check if cached CSV is still valid
 def _csv_is_bad(df: pd.DataFrame | None) -> bool:
     if df is None or df.empty:
         return True
@@ -188,7 +202,7 @@ def _csv_is_bad(df: pd.DataFrame | None) -> bool:
     tmp = df[list(needed)].replace({"": pd.NA, "—": pd.NA, "--": pd.NA})
     return tmp.isna().all().all()
 
-
+# Load or scrape data
 def _load_or_scrape(force: bool = False):
     df = None
     if CSV_OUT.exists() and not force:
@@ -215,12 +229,14 @@ def _load_or_scrape(force: bool = False):
     return df, links
 
 
+# Streamlit Dashboard
 def render_inflation_page():
     st.header("Inflation (CCPI / NCPI) — Y-o-Y (2023–2025)")
     
+     # Load data (cached or scraped)
     df, links = _load_or_scrape(force=False)
 
-# --- Last updated info ---
+    # Show when data was last updated (CSV timestamp)
     if CSV_OUT.exists():
         last_updated = datetime.fromtimestamp(CSV_OUT.stat().st_mtime)
         st.caption(f"Last updated: {last_updated.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -228,7 +244,7 @@ def render_inflation_page():
         st.caption("Last updated: Not available (no CSV found)")
         
         
-    # ---------- Filters ----------
+    # --- Filters ----
     c1, c2, c3 = st.columns(3)
     with c1:
         years = sorted(df["year"].unique())
@@ -239,6 +255,7 @@ def render_inflation_page():
         measure_sel = st.radio(
             "Measure", ["Headline (Y-o-Y)", "Core (Y-o-Y)"], horizontal=True)
 
+    # Choose correct column based on filters
     d = df[df["year"].isin(year_sel)].copy()
     if index_sel == "CCPI" and measure_sel.startswith("Headline"):
         ycol = "ccpi_headline_yoy"

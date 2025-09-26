@@ -82,7 +82,9 @@ Then open the link in your browser (default: http://localhost:8501).
 
 - [CBSL Policy Rates Page](https://www.cbsl.gov.lk/en/rates-and-indicators/policy-rates)
 - [CBSL Custom Policy Rates API](https://www.cbsl.gov.lk/cbsl_custom/param/plrates.php)
-- Additional CBSL data sources to be integrated (inflation rates, exchange rates, reserves, etc.)
+- [CBSL Inflation Window](https://www.cbsl.gov.lk/cbsl_custom/inflation/inflationwindow.php)  
+- [CBSL Inflation Press Releases](https://www.cbsl.gov.lk/en/measures-of-consumer-price-inflation)  
+- Additional CBSL data sources to be integrated (exchange rates, reserves, etc.)
 
 ---
 

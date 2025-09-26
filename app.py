@@ -4,6 +4,7 @@ import os
 import plotly.express as px
 from policyRatesScraper import render_policy_rates_page
 from exchangeRatesScraper import latest_currency_rates
+from sl_prosperity_index import show_sl_prosperity_index
 
 # Set Streamlit page configuration
 st.set_page_config(
@@ -16,7 +17,8 @@ st.set_page_config(
 st.title("Central Bank of Sri Lanka Data Dashboard")
 
 st.sidebar.title("Navigation")
-selected_page = st.sidebar.radio("Select Page", ["Home", "Policy Rates", "Exchange Rates"])
+# ⬇️ Change this line to include the new page
+selected_page = st.sidebar.radio("Select Page", ["Home", "Policy Rates", "Exchange Rates", "SL Prosperity Index"])
 
 # --- Home Page ---
 if selected_page == "Home":
@@ -68,3 +70,7 @@ elif selected_page == "Exchange Rates":
         if curr:
             fig = px.line(plot_data, x="Date", y=f"TT Rates -Selling {curr}", title=f"{curr} Over Time")
             st.plotly_chart(fig, use_container_width=True)
+
+    # --- SL Prosperity Index Page ---
+elif selected_page == "SL Prosperity Index":
+    show_sl_prosperity_index()

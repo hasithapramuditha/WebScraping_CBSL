@@ -6,6 +6,8 @@ from exchangeRatesScraper import latest_currency_rates,difference_in_exchange_ra
 from policyRatesScraper import render_policy_rates_page
 from inflationScraper import render_inflation_page
 from sl_prosperity_index import show_sl_prosperity_index
+from price_wages_employment import render_prices_wages_page
+from moneySupply import render_money_supply_page
 
 
 
@@ -20,18 +22,33 @@ st.set_page_config(
 st.title("Central Bank of Sri Lanka Data Dashboard")
 
 st.sidebar.title("Navigation")
-selected_page = st.sidebar.radio("Select Page", ["Home", "Policy Rates", "Exchange Rates", "Inflation" , "SL Prosperity Index"])
+selected_page = st.sidebar.radio("Select Page", ["Home", "Exchange Rates", "Money Supply", "Policy Rates", "Inflation", "SL Prosperity Index", "Prices & Wages"])
 
 # --- Home Page ---
 if selected_page == "Home":
     st.write("""
     # Welcome to the CBSL Data Dashboard
-    This application displays policy interest rate data from the Central Bank of Sri Lanka.
+    This comprehensive dashboard provides real-time economic and financial data from the Central Bank of Sri Lanka.
     
-    - View the **latest policy rates** (OPR, SRR, SDFR, SLFR)
-    - Explore **historical interest rate trends**
-    - Analyze **exchange rate movements**
+    ### Available Data:
+    - 📈 **Exchange Rates**: Latest buying and selling rates with historical trends
+    - 💰 **Money Supply**: Track monetary sector indicators and market operations
+    - 🏦 **Policy Rates**: Current and historical policy rates (OPR, SRR, SDFR, SLFR)
+    - 📊 **Inflation**: CCPI and NCPI data with historical analysis
+    - 📉 **SL Prosperity Index**: Track Sri Lanka's economic prosperity indicators
+    - 💹 **Prices & Wages**: Employment data, wage indices, and price indicators
+    
+    ### Features:
+    - Real-time data from CBSL official sources
+    - Interactive charts and visualizations
+    - Historical trend analysis
+    - Data export capabilities
+    - Automated data updates
     """)
+    
+    # Add website update time
+    st.sidebar.markdown("---")
+    st.sidebar.write("Last Updated:", pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 # --- Policy Rates Page ---
 elif selected_page == "Policy Rates":
@@ -94,3 +111,11 @@ elif selected_page == "Inflation":
 # --- SL Prosperity Index Page ---
 elif selected_page == "SL Prosperity Index":
     show_sl_prosperity_index()
+    
+# --- Prices & Wages Page ---
+elif selected_page == "Prices & Wages":
+    render_prices_wages_page()
+
+# --- Money Supply Page ---
+elif selected_page == "Money Supply":
+    render_money_supply_page()

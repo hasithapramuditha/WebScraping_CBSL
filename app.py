@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from policyRatesScraper import scrape_policy_rates
 import os
 import plotly.express as px
-from exchangeRatesScraper import latest_currency_rates
+from exchangeRatesScraper import latest_currency_rates,difference_in_exchange_rates
 
 # Set Streamlit page configuration
 st.set_page_config(
@@ -111,14 +111,26 @@ elif selected_page == "Exchange Rates":
     currencies = [col[-4:].strip() for col in df.columns if col != "Date"]
     curr = st.selectbox("Select Currency", set(currencies))
     
+    
     if curr:
         latest_rates = latest_currency_rates(df, curr)
+        differece = difference_in_exchange_rates(df, curr)
         st.subheader(f"Latest Rates for {curr} as of {latest_rates['date']}")
         
         col1, col2 = st.columns(2)
-        col1.metric("Buying Rate", f"Rs.{latest_rates['buying']}")
-        col2.metric("Selling Rate", f"Rs.{latest_rates['selling']}")
-    
+        col1.metric(
+            "Buying Rate",
+            f"Rs.{latest_rates['buying']}",
+            differece['buying_diff'],
+            delta_color="inverse"  # green if positive, red if negative
+        )
+
+        col2.metric(
+            "Selling Rate",
+            f"Rs.{latest_rates['selling']}",
+            differece['selling_diff'],
+            delta_color="inverse"
+        )
     
     st.subheader("Historical Exchange Rates")
     

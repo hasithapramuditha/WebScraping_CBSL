@@ -1,19 +1,54 @@
 # 📊 Central Bank of Sri Lanka Data Dashboard
 
-A comprehensive **Streamlit dashboard** to visualize **economic indicators and financial data** published by the **Central Bank of Sri Lanka (CBSL)**.
-
-This project scrapes real-time data from CBSL websites and displays them in interactive dashboards. Currently features policy rates (SDFR, SLFR, OPR, SRR) with plans to expand to other key economic indicators.
+A comprehensive **Streamlit dashboard** that provides real-time access to economic and financial data published by the **Central Bank of Sri Lanka (CBSL)**. This project automatically scrapes data from various CBSL sources and presents it through interactive visualizations and analysis tools.
 
 ---
 
 ## 🚀 Features
 
-- Fetches **latest CBSL economic data** directly from official sources
-- **Policy Rates Module**: SDFR, SLFR, OPR, SRR with real-time updates
-- Displays data in **table view** and **interactive charts**
-- Supports **on-demand refresh** for up-to-date values
-- Sidebar navigation for multiple data sections
-- Tooltips and detailed insights for each economic indicator
+### Data Modules
+- **Exchange Rates**: 
+  - Real-time buying and selling rates
+  - Historical exchange rate trends
+  - Multiple currency support
+  - Change analysis and comparisons
+
+- **Money Supply & Market Operations**:
+  - Monetary sector indicators
+  - Open market operations data
+  - Historical trend analysis
+  - Daily data updates
+
+- **Policy Rates**: 
+  - Latest SDFR, SLFR, OPR, SRR rates
+  - Historical policy rate changes
+  - Real-time updates from CBSL
+
+- **Inflation Metrics**:
+  - CCPI (Colombo Consumer Price Index)
+  - NCPI (National Consumer Price Index)
+  - Year-on-Year and Month-on-Month changes
+  - Inflation press release links
+
+- **SL Prosperity Index**:
+  - Economic prosperity indicators
+  - Historical trend analysis
+  - Multiple index components
+
+- **Prices & Wages**:
+  - Employment statistics
+  - Wage rate indices
+  - Price indicators
+  - Comprehensive data visualization
+
+### Technical Features
+- Automated data scraping from official CBSL sources
+- Interactive Plotly visualizations
+- Data export capabilities (CSV format)
+- Responsive design with Streamlit
+- Automatic data refresh
+- Historical data storage
+- Error handling and data validation
 
 ---
 
@@ -91,33 +126,55 @@ Then open the link in your browser (default: http://localhost:8501).
 ```
 WebScraping_CBSL/
 │
-├── main.py                   # Main Streamlit app
-├── requirements.txt          # Python dependencies
-├── README.md                 # Project documentation
-├── policyRatesScraper.py     # Policy rates scraper module
-├── inflation_scraper.py      # (Planned)
-├── exchange_scraper.py       # (Planned)
-└── reserves_scraper.py       # (Planned)
+├── app.py                         # Main Streamlit application
+├── exchangeRatesScraper.py        # Exchange rates scraping module
+├── inflationScraper.py           # Inflation data scraping module
+├── moneySupply.py                # Money supply data scraping
+├── policyRatesScraper.py         # Policy rates scraping module
+├── price_wages_employment.py     # Prices and wages data module
+├── sl_prosperity_index.py        # SL Prosperity Index module
+├── requirements.txt              # Python dependencies
+├── README.md                     # Project documentation
+│
+├── Data/                         # Data storage directory
+│   ├── cbsl_inflation_2023_2025.csv
+│   ├── cbsl_inflation_press_links.csv
+│   ├── exchange_rates.csv
+│   └── Data.xls
+│
+├── Data_moneySupply/            # Money supply data directory
+│   └── open_market_operations_clean_direct.csv
+│
+├── downloads/                    # Temporary download directory
+└── plots/                       # Generated plots directory
 ```
 
 ---
 
-## 📅 Roadmap
+## 📅 Project Status
 
-### Phase 1 (Current)
-- ✅ Policy rates dashboard (SDFR, SLFR, OPR, SRR)
+### Completed Features ✅
+- Exchange rates dashboard with historical data
+- Money supply and market operations tracking
+- Policy rates monitoring system
+- Inflation rates and CPI tracking
+- SL Prosperity Index visualization
+- Prices and wages data analysis
+- Automated data scraping
+- Interactive visualizations
+- Data export functionality
 
-### Phase 2 (In Development)
-- 🔄 Inflation rates and consumer price index
-- 🔄 Exchange rates (LKR vs major currencies)
-- 🔄 Foreign reserves data
-
-### Phase 3 (Planned)
-- 📋 Government securities rates
-- 📋 Banking sector indicators
-- 📋 Historical data analysis and trends
-- 📋 Automated daily updates with scheduling
-- 📋 Deploy online (Streamlit Cloud or Heroku)
+### Future Enhancements 🔄
+- Government securities rates integration
+- Banking sector indicators
+- Advanced time series analysis
+- Machine learning-based predictions
+- Mobile-responsive design improvements
+- API endpoint development
+- Automated scheduled updates
+- Cloud deployment (Streamlit Cloud/Heroku)
+- Email/notification alerts for significant changes
+- Data caching and performance optimization
 
 ---
 

@@ -28,7 +28,7 @@ def fetch_page_soup(url: str = PAGE_URL) -> BeautifulSoup:
 
 # Extracting title 
 def extract_title(soup: BeautifulSoup) -> str | None:
-    # Primary selector (your original)
+    # Primary selector 
     h1 = soup.select_one("div.field-item.odd h1")
     if h1:
         return h1.get_text(strip=True)
@@ -139,7 +139,7 @@ def show_sl_prosperity_index():
     df = build_slpi_dataframe()
     st.dataframe(df, use_container_width=True)
 
-    # quick summary
+    # Average SLPI
     if df["SLPI"].notna().any():
         avg = df["SLPI"].dropna().mean()
         st.caption(f"Average SLPI ({int(df['Year'].min())}–{int(df['Year'].max())}): **{avg:.3f}**")

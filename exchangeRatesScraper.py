@@ -34,6 +34,19 @@ def latest_currency_rates(df,currency):
         "selling": selling
     }
 
+def difference_in_exchange_rates(df, currency):
+    """Returns the difference in exchange rates from the DataFrame betweeen latest and the previous of that."""
+    data = df.sort_index(ascending=False)
+    latest = data.iloc[0]
+    previous = data.iloc[1]
+    
+    buying_diff = latest[f"TT Rates -Buying {currency}"] - previous[f"TT Rates -Buying {currency}"]
+    selling_diff = latest[f"TT Rates -Selling {currency}"] - previous[f"TT Rates -Selling {currency}"]
+    return {
+        "buying_diff": round(buying_diff,2),
+        "selling_diff": round(selling_diff,2)
+    }
+
 def ensure_clean_folder(folder: Path):
     folder.mkdir(parents=True, exist_ok=True)  # ensure it exists
     for item in folder.iterdir():
